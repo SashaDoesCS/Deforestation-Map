@@ -1,3 +1,5 @@
+# created with the help of chatGPT 4o
+
 import os
 import requests
 from tqdm import tqdm  # Progress bar for downloads

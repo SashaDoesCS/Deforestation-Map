@@ -1,23 +1,78 @@
+# created with the help of chatGPT 4o
+
 import pandas as pd
 from collections import deque
 
 
+class LogNode:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class LogLinkedList:
+    def __init__(self, max_size=10):
+        self.head = None
+        self.size = 0
+        self.max_size = max_size
+
+    def append(self, data):
+        new_node = LogNode(data)
+
+        # If list is empty
+        if not self.head:
+            self.head = new_node
+            self.size = 1
+            return
+
+        # If list is at max size, remove oldest entry (last node)
+        if self.size >= self.max_size:
+            new_node.next = self.head
+            self.head = new_node
+            current = self.head
+            # Traverse to second-to-last node
+            for _ in range(self.max_size - 2):
+                current = current.next
+            # Remove last node
+            current.next = None
+        else:
+            # Add new node at beginning
+            new_node.next = self.head
+            self.head = new_node
+            self.size += 1
+
+    def get_all_logs(self):
+        logs = []
+        current = self.head
+        while current:
+            logs.append(current.data)
+            current = current.next
+        return logs
+
+
+class PointAnalyzer:
+    def analyze(self, data):
+        raise NotImplementedError("Subclass must implement this method")
+
+
+class GainAnalyzer(PointAnalyzer):
+    def analyze(self, data):
+        return "Gain detected" if data["gain"] == 1 else "No gain"
+
+
+class LossAnalyzer(PointAnalyzer):
+    def analyze(self, data):
+        return f"Loss in year {2000 + data['loss_year']}" if data["loss"] == 1 else "No loss"
+
+
 class ClickHandler:
     def __init__(self):
-        # Queue to store recent points for analysis
         self.click_queue = deque(maxlen=3)
-        # Log to store all click history
-        self.click_log = []
+        self.click_log = LogLinkedList(max_size=10)  # Initialize with max_size=10
 
     def analyze_area_changes(self, df, center_lat, center_lon, degree_range=5):
         """
         Analyze forest coverage changes in a 10x10 degree area around clicked point.
-
-        Args:
-            df: DataFrame with forest coverage data
-            center_lat: Latitude of clicked point
-            center_lon: Longitude of clicked point
-            degree_range: Half the size of area to analyze (5 degrees = 10x10 degree area)
         """
         # Define area boundaries
         lat_min = center_lat - degree_range
@@ -68,21 +123,12 @@ class ClickHandler:
         }
 
     def handle_click(self, click_data, df):
-        """
-        Process click events and analyze forest coverage changes.
-
-        Args:
-            click_data: Click event data from Dash
-            df: DataFrame containing forest coverage data
-        """
         if click_data is None:
             return self.get_empty_response()
 
         try:
             lat = click_data['points'][0]['lat']
             lon = click_data['points'][0]['lon']
-
-            # Get clicked point data
             point_data = df[
                 (df['lat'] == lat) &
                 (df['lon'] == lon)
@@ -91,10 +137,7 @@ class ClickHandler:
             if point_data is None:
                 return self.get_empty_response()
 
-            # Analyze area changes
             area_analysis = self.analyze_area_changes(df, lat, lon)
-
-            # Format area analysis text
             area_analysis_text = (
                 f"10°x10° Area Analysis:\n"
                 f"Forest Gain: {area_analysis['gain_points']} points ({area_analysis['gain_percentage']:.1f}%)\n"
@@ -103,13 +146,17 @@ class ClickHandler:
                 f"Overall Trend: {area_analysis['net_change']}"
             )
 
-            # Store point in queue
             self.click_queue.append((lat, lon, point_data))
 
-            # Create point status
-            point_status = self.get_point_status(point_data)
+            # Polymorphic handling for point status
+            gain_analyzer = GainAnalyzer()
+            loss_analyzer = LossAnalyzer()
+            point_status = ", ".join([
+                gain_analyzer.analyze(point_data),
+                loss_analyzer.analyze(point_data)
+            ])
 
-            # Add to click log with area analysis
+            # Create and append log entry
             log_entry = (
                 f"Lat {lat:.4f}, Lon {lon:.4f}: "
                 f"Canopy {point_data['canopy_level']:.1f}%, {point_status} | "
@@ -117,7 +164,6 @@ class ClickHandler:
             )
             self.click_log.append(log_entry)
 
-            # Calculate average canopy for recent points
             avg_canopy = self.calculate_average_canopy()
 
             return {
@@ -126,31 +172,20 @@ class ClickHandler:
                 'area_analysis': area_analysis_text,
                 'queue_display': self.format_queue_display(),
                 'average_log': f"Average canopy of last {len(self.click_queue)} points: {avg_canopy:.2f}%",
-                'full_log': "Recent History: " + " | ".join(self.click_log[-5:])
+                'full_log': "Recent History: " + " | ".join(self.click_log.get_all_logs())
             }
 
         except Exception as e:
             print(f"Error in click handler: {e}")
             return self.get_empty_response()
 
-    def get_point_status(self, point_data):
-        """Generate status string for a point"""
-        status = []
-        if point_data["gain"] == 1:
-            status.append("Gain detected")
-        if point_data["loss"] == 1:
-            status.append(f"Loss in year {2000 + point_data['loss_year']}")
-        return ", ".join(status) if status else "No change"
-
     def calculate_average_canopy(self):
-        """Calculate average canopy level for points in queue"""
         if not self.click_queue:
             return 0.0
         canopy_levels = [data['canopy_level'] for _, _, data in self.click_queue]
         return sum(canopy_levels) / len(canopy_levels)
 
     def format_queue_display(self):
-        """Format queue for display"""
         if not self.click_queue:
             return "Point queue: Empty"
 
@@ -161,7 +196,6 @@ class ClickHandler:
         return "Point queue: " + ", ".join(points)
 
     def get_empty_response(self):
-        """Return empty response structure"""
         return {
             'click_data': "Click on a point to see canopy data",
             'area_analysis': "Click to see area analysis",

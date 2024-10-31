@@ -1,3 +1,5 @@
+# created with the help of chatGPT 4o
+
 import os
 import rasterio
 import numpy as np
@@ -8,10 +10,10 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from collections import defaultdict
 from click_handlers import ClickHandler
-from search_system import BinaryTileSearch, TileData
+from search_system import BinaryTileSearch
 
 # Path to the processed GeoTIFF folder
-processed_folder = 'processed20'
+processed_folder = 'procesed20'
 
 # Initialize a hash table to store lat, lon, canopy level, gain, loss, and loss year
 geo_hash_table = defaultdict(lambda: {"canopy_level": None, "gain": None, "loss": None, "loss_year": None})
@@ -196,7 +198,7 @@ def create_visualization(df, search_results=None):
                 colorbar=dict(title='Canopy Level (%)')
             ),
             hoverinfo='text',
-            name='All Data'
+            name=' '
         )
 
         data = [base_scatter]
@@ -219,7 +221,7 @@ def create_visualization(df, search_results=None):
                     color='red',
                 ),
                 hoverinfo='text',
-                name='Search Results'
+                name=' '
             )
             data.append(search_scatter)
 
@@ -266,17 +268,17 @@ def main():
         html.Div([
             html.H3("Search Filters"),
             html.Div([
-                html.Label("Minimum Canopy Level (%)"),
-                dcc.Input(id='min-canopy', type='number', value=None),
+                html.Label("Minimum Canopy Level (%) - Will not search if min > max"),
+                dcc.Input(id='min-canopy', type='number', value=None, min=0, max=100),
 
-                html.Label("Maximum Canopy Level (%)"),
-                dcc.Input(id='max-canopy', type='number', value=None),
+                html.Label("Maximum Canopy Level (%) - Will not search if min > max"),
+                dcc.Input(id='max-canopy', type='number', value=None, min=0, max=100),
 
-                html.Label("Minimum Loss Year"),
-                dcc.Input(id='min-loss-year', type='number', value=None, min=2000, max=2020),
+                html.Label("Minimum Loss Year - Will not search if min > max"),
+                dcc.Input(id='min-loss-year', type='number', value=None, min=2000, max=2014),
 
-                html.Label("Maximum Loss Year"),
-                dcc.Input(id='max-loss-year', type='number', value=None, min=2000, max=2020),
+                html.Label("Maximum Loss Year - Will not search if min > max"),
+                dcc.Input(id='max-loss-year', type='number', value=None, min=2000, max=2014),
 
                 html.Label("Has Gain"),
                 dcc.Dropdown(
@@ -409,7 +411,7 @@ def main():
             return None
 
     print("Data processing complete. Starting Dash server...")
-    app.run_server(debug=True)
+    app.run_server(debug=False)
 
 
 if __name__ == "__main__":
