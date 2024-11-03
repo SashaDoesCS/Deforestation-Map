@@ -9,7 +9,7 @@ On run there will be a loading bar via the terminal, allow about 10-20 seconds t
 Below is a list of all the necessary libraries that can be copy and pasted into the command prompt, this program will not run without all of these. 
 
 The map overlay on the globe does not capture every landmass unlike satelite data due to current limitations, some points will seem to be in the ocean but in reality are islands. Keep in mind as your proceeding.
-
+```
 @echo off
 echo Starting library installation...
 echo.
