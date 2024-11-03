@@ -1,5 +1,9 @@
 # created with the help of chatGPT 4o
-
+# Creator notes: This program was created and tested on Windows 11 only, keep in mind
+# Before running. On run there will be a loading bar via the terminal, allow about 10-20 seconds
+# to load the visualization, and some latency is expected for rotating the globe
+# Make sure your target processed folder is listed correctly, double check names matching if error occurs
+# Please follow instructions listed in the readme before runtime
 import os
 import rasterio
 import numpy as np
@@ -10,9 +14,13 @@ from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from collections import defaultdict
 from click_handlers import ClickHandler
-from search_system import BinaryTileSearch
+from search_system import BinaryTileSearch  # To switch between search_system and
+# search_systemtimsort remove or add the timsort to the end of the import, and make sure
+# and that search_system and search_systemtimsort are in the same directory
 
-# Path to the processed GeoTIFF folder
+# Path to the processed GeoTIFF folder. If you want to load in a different data set, follow
+# Instructions listed on processData and keep in mind the size and time, it is not recommended
+# To change the dataset given
 processed_folder = 'procesed20'
 
 # Initialize a hash table to store lat, lon, canopy level, gain, loss, and loss year
@@ -23,7 +31,7 @@ def load_geotiffs_with_coordinates(folder):
     """
     Load GeoTIFF files from the processed folder and its subfolders,
     and calculate geographic coordinates for each pixel.
-    Gracefully handles any errors encountered during file loading.
+    handles any errors encountered during file loading.
     """
     try:
         geotiff_data = []
@@ -150,10 +158,6 @@ def load_geotiffs_with_coordinates(folder):
                     print(f"Error processing loss year file {file_path}: {str(e)}")
                     continue
 
-
-            # [Process other file types with the same pattern as in the original code]
-            # ... [Previous processing code for gain, loss, and loss_year remains the same]
-
         # Convert temporary data to list of tuples for DataFrame
         for (lat, lon), data in temp_data.items():
             geotiff_data.append((
@@ -232,7 +236,8 @@ def create_visualization(df, search_results=None):
                 geo=dict(
                     projection_type='orthographic',
                     center=dict(lon=-78, lat=22),
-                    projection=dict(rotation=dict(lon=-78, lat=22, roll=0)),
+                    projection=dict(rotation=dict(lon=-78, lat=22, roll=0)),  # To change starting location, change
+                    # to desired coordinates
                     showland=True,
                     landcolor='rgb(250, 250, 250)',
                     showocean=True,
@@ -411,7 +416,8 @@ def main():
             return None
 
     print("Data processing complete. Starting Dash server...")
-    app.run_server(debug=False)
+    app.run_server(debug=False) # Optionally you can turn on debug, not recommended due to double load. caution adding a
+    # host, make sure you know what running on a host does before proceeding in doing so
 
 
 if __name__ == "__main__":

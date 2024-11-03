@@ -1,8 +1,12 @@
 # created with the help of chatGPT 4o
+# Creator notes: Timsort is the builtin sort function for Python, this program
+# Uses it as in illustration of what the built-in function is, and will work using
+# The built-in sort instead, to see this change, there is one line in the imports
+# That is changed to switch between search_system.py and search_systemtimsort.py
+
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
-import plotly.graph_objs as go
 import pandas as pd
 
 

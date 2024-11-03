@@ -1,4 +1,15 @@
 # created with the help of chatGPT 4o
+# Warning: To prevent any mishaps, the urldata.txt file is not present in the
+# Files given, as the run time for the program several hours long
+# If you wish to run this program, you may find the dataset by going to
+# https://earthenginepartners.appspot.com/science-2013-global-forest/download_v1.2.html
+# This is not a required step to run the program and should only be used if you wish.
+# To increase the resolution of the data beyond 20 by 20, however this is not recommended
+# due to the increase in lag. For a machine with 32 gigabytes of ram 50 by 50 will run decently
+# To download, locate the links to file downloads provided, create a file called urldata.txt
+# Copy and paste all links with no empty lines into the urldata, make sure it matches target and run
+# Original file sizes can be over 4 gigs, If program is interrupted delete files from download, as those are temporary
+# And will sit there if left unattended
 
 import os
 import requests
@@ -41,7 +52,7 @@ def process_geotiff(file_path):
 
 
 # Step 3: Resize GeoTIFF file while preserving metadata
-def resize_geotiff(input_path, output_path, target_size=(400, 400)):
+def resize_geotiff(input_path, output_path, target_size=(20, 20)):  # change the target size at your own risk
     with rasterio.open(input_path) as src:
         # Calculate the scaling factors
         scale_factor_width = src.width / target_size[0]
@@ -74,7 +85,8 @@ def resize_geotiff(input_path, output_path, target_size=(400, 400)):
 
 
 # Step 4: Organize into folders based on coordinates
-def organize_and_process(url, download_folder, processed_folder, target_size=(1000, 1000)):
+def organize_and_process(url, download_folder, processed_folder, target_size=(20, 20)):  # change the target size at
+    # your own risk
     # Extract coordinates from the URL (last part before .tif)
     filename = url.split("/")[-1]
     coords = filename.split('_')[-2:]  # e.g., "40N_080W"
@@ -97,7 +109,7 @@ def organize_and_process(url, download_folder, processed_folder, target_size=(10
     os.remove(file_path)
 
 
-# Step 5: Main function to handle all files in the URLs list
+# Step 5: Main function to handle all files in the url list
 def main():
     download_folder = "downloads"
     processed_folder = "processed"
